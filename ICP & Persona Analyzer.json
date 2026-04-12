@@ -1,0 +1,915 @@
+{
+  "name": "ICP & Persona Analyzer",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Audience analysis",
+        "formDescription": "Provide us with information about your audience so we can analyze and profile your target ICP and personas.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Are you analyzing your audience or generating persona profiles?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Analyzing audiences"
+                  },
+                  {
+                    "option": "Generating persona profiles"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -288,
+        1248
+      ],
+      "id": "00000000-0000-0000-0000-000000000008",
+      "name": "Audience analysis",
+      "webhookId": "YOUR_WEBHOOK_ID_1"
+    },
+    {
+      "parameters": {
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Upload your company list (include company name, industry, country of headquarters, last year's annual revenue, and number of employees)",
+              "fieldType": "file",
+              "acceptFileTypes": ".csv, .xlsx"
+            },
+            {
+              "fieldLabel": "Upload your contact list (include job title, company name, industry, and country of location)",
+              "fieldType": "file",
+              "acceptFileTypes": ".csv, .xlsx"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.3,
+      "position": [
+        112,
+        992
+      ],
+      "id": "00000000-0000-0000-0000-000000000019",
+      "name": "Upload customer details",
+      "webhookId": "YOUR_WEBHOOK_ID_4"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json['Upload your company list (include company name, industry, country of headquarters, last year\\'s annual revenue, and number of employees)'].length }}",
+                    "rightValue": 0,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gt"
+                    },
+                    "id": "00000000-0000-0000-condition-000004"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Account List"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json['Upload your contact list (include job title, company name, industry, and country of location)'].length }}",
+                    "rightValue": 0,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gt"
+                    },
+                    "id": "00000000-0000-0000-condition-000005"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Contact List"
+            }
+          ]
+        },
+        "options": {
+          "allMatchingOutputs": true
+        }
+      },
+      "id": "00000000-0000-0000-0000-000000000020",
+      "name": "Company & contact lists",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        304,
+        992
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "document",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.1-pro-preview",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.1-pro-preview"
+        },
+        "text": "=You are a Market Research Analyst who specializes in analyzing customer profiles. Your goal is to generate a report based on the uploaded company list while following the instructions below. \n\nThe report must include four sections that show the distribution of percentages for companies in each category - including: 1) \"Industry\", 2) \"Country of Headquarters\", 3) \"Last Year's Annual Revenue\", and 4) \"Number of Employees\" - based upon information from the uploaded company list.\n\n1. **Industry:** Show the percentages of companies in each of the ten most common industries. Ensure that industry naming conventions follow NAICS standards.\n\n2. **Country of Headquarters:** Show the percentage of companies whose headquarters are located in each of the ten most common countries. Ensure that each country listed follows naming conventions standardized by the U.N.\n\n3. **Last Year's Annual Revenue:** Show the percentages of companies whose reported annual revenue from the prior year ranges between 0-$99,999,999; $100,000,000-$499,999,999; $500,000,000-$999,999,999; $1,000,000,000-$4,999,999,999; $5,000,000,000-$9,999,999,999; and ≥$10,000,000,000. \n\n4. **Number of Employees:** Show the percentage of companies with total number of employees that range from 1-249 employees; 250-499 employees; 500-999 employees; 1,000-4,999 employees; 5,000-9,999 employees; 10,000-49,999 employees; 50,000-99,999 employees; and ≥100,000 employees.\n\nShow the top 10 results for each category, and group the rest as 'Other'. If there are 10 or fewer results, then do not include an 'Other' category. Round each percentage to the nearest tenth of a decimal point. Parse revenue and employee counts into numbers when possible (e.g., '$3.2B' → 3200000000; '10k' → 10000). If data is missing, omit any missing data from cumulative totals. ",
+        "inputType": "binary",
+        "binaryPropertyName": "=Upload_your_company_list__include_company_name__industry__country_of_headquarters__last_year_s_annual_revenue__and_number_of_employees_",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        512,
+        896
+      ],
+      "id": "00000000-0000-0000-0000-000000000014",
+      "name": "Analyze document",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YOUR_GOOGLE_GEMINI_CREDENTIAL_ID",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "document",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-3.1-pro-preview",
+          "mode": "list",
+          "cachedResultName": "models/gemini-3.1-pro-preview"
+        },
+        "text": "=You are a Market Research Analyst who specializes in analyzing customers' user profiles. Your goal is to generate a report based on the uploaded contact list while following the instructions below.\n\nThe report must include four sections that show the distribution of percentages for contacts in each category - including: 1) \"Job Title\", 2) \"Company Name\", 3) \"Industry\", and 4) \"Country of Location\" - based upon information from the uploaded contact list.\n\n1. **Job Title:** List the percentages for the 10 most common job titles.\n\n2. **Company Name:** List the percentages for the 10 most common companies. \n\n3. **Industry:** List the percentages for the 10 most common industries. Ensure that industry naming conventions follow NAICS standards.\n\n4. **Country of Location:** List percentages for the 10 most common countries from which customers' contacts originate. Ensure that each country listed follows naming conventions standardized by the U.N.\n\nShow the top 10 results for each category by percentage, and group the remaining results into a single, unified category called 'Other'. If there are 10 categories or fewer, then do not include a category for 'Other'. Round each number to the nearest whole percentage. If the data is unavailable, enter 'N/A', and omit any missing data from cumulative totals.",
+        "inputType": "binary",
+        "binaryPropertyName": "=Upload_your_contact_list__include_job_title__company_name__industry__and_country_of_location_",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        512,
+        1088
+      ],
+      "id": "00000000-0000-0000-0000-000000000005",
+      "name": "Analyze document1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YOUR_GOOGLE_GEMINI_CREDENTIAL_ID",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "content.parts[0].text",
+        "binaryPropertyName": "=account_profile",
+        "options": {
+          "fileName": "account_profile.md"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        688,
+        896
+      ],
+      "id": "00000000-0000-0000-0000-000000000011",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "content.parts[0].text",
+        "binaryPropertyName": "=contact_profile",
+        "options": {
+          "fileName": "contact_profile.md"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        688,
+        1088
+      ],
+      "id": "00000000-0000-0000-0000-000000000004",
+      "name": "Convert to File1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {
+          "fuzzyCompare": true
+        }
+      },
+      "id": "00000000-0000-0000-0000-000000000010",
+      "name": "Merge Profiles",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        880,
+        992
+      ]
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-pro-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        608,
+        1424
+      ],
+      "id": "00000000-0000-0000-0000-000000000016",
+      "name": "Google Gemini Chat Model12",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YOUR_GOOGLE_GEMINI_CREDENTIAL_ID",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.1-pro-preview",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        608,
+        1712
+      ],
+      "id": "00000000-0000-0000-0000-000000000002",
+      "name": "Google Gemini Chat Model13",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "YOUR_GOOGLE_GEMINI_CREDENTIAL_ID",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Is your buyer also the primary user?",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Yes"
+                  },
+                  {
+                    "option": "No"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.3,
+      "position": [
+        112,
+        1440
+      ],
+      "id": "00000000-0000-0000-0000-000000000009",
+      "name": "Is the buyer the user?",
+      "webhookId": "YOUR_WEBHOOK_ID_5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "00000000-0000-0000-condition-000006",
+              "leftValue": "={{ $json[\"Is your buyer also the primary user?\"] === \"Yes\" }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "00000000-0000-0000-condition-000002",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        256,
+        1440
+      ],
+      "id": "00000000-0000-0000-0000-000000000001",
+      "name": "Yes/No"
+    },
+    {
+      "parameters": {
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "What are the job titles for your target personas?",
+              "fieldType": "textarea",
+              "placeholder": "List the job titles for your target personas"
+            },
+            {
+              "fieldLabel": "What industries does your target personas operate in?",
+              "fieldType": "textarea",
+              "placeholder": "List the industries your target persona operates in"
+            },
+            {
+              "fieldLabel": "What countries do your target personas operate in?",
+              "fieldType": "textarea",
+              "placeholder": "List the countries your target personas operate in"
+            },
+            {
+              "fieldLabel": "What technology are they evaluating?",
+              "placeholder": "Enter your product category"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        1296
+      ],
+      "id": "00000000-0000-0000-0000-000000000012",
+      "name": "Target persona details",
+      "webhookId": "YOUR_WEBHOOK_ID_3"
+    },
+    {
+      "parameters": {
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "What are the job titles for your buyer personas?",
+              "fieldType": "textarea",
+              "placeholder": "List the job titles for your buyer personas"
+            },
+            {
+              "fieldLabel": "What are the job titles for your user personas?",
+              "fieldType": "textarea",
+              "placeholder": "List the job titles for your user personas"
+            },
+            {
+              "fieldLabel": "What industries do your personas operate in?",
+              "fieldType": "textarea",
+              "placeholder": "List the industries your personas operate in"
+            },
+            {
+              "fieldLabel": "What countries do your buyer personas operate in?",
+              "fieldType": "textarea",
+              "placeholder": "List the countries your buyer personas operate in"
+            },
+            {
+              "fieldLabel": "What technology are they evaluating?",
+              "placeholder": "Enter your product category "
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        1568
+      ],
+      "id": "00000000-0000-0000-0000-000000000015",
+      "name": "Buyer & persona details",
+      "webhookId": "YOUR_WEBHOOK_ID_3"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# Role & Objective\n- You are a Market Research Analyst who specializes in analyzing customer profiles. \n- Your goal is to produce a report that helps others understand the target buyer and user personas. \n\n# Task\n- Analyze each title listed and delineated by commas, like so: {{ $json['What are the job titles for your target personas?'] }}. \n- Ensure that industries and countries of origin apply to each persona. \n\n# Extract and analyze the following details\n- **Job title:** {{ $json['What are the job titles for your target personas?'] }}\n- **Industry:** {{ $json['What industries do your target personas operate in?'] }}\n- **Location:** {{ $json['What countries do your target personas operate in?'] }}\n- **Product category:** {{ $json['What technology are they evaluating?'] }}\n\n# Describe the target persona\n- **Role:** List the standard job responsibilities\n- **KPIs:** List measurable key performance indicators \n- **Challenges:** List the operational challenges \n- **Tech Stack:** List commonly used software solutions\n\n# List popular channels of engagement for the target persona:\n- Publications \n- Online groups or forums (including LinkedIn groups, subreddits, Slack channels, and Discord channels)\n- Professional associations\n- Industry events or conferences \n\n# Describe the persona's expectations\n- How would they use the technology?\n- What results do they anticipate?\n\n# Customer Journey\nList at least 5 hypothetical questions that may be asked by the target persona at each stage of the customer journey\n1. **Awareness:** The potential customer identifies a need or problem and discovers your brand.\n2. **Consideration:** The prospect defines their problem and researches potential solutions or vendors.\n3. **Decision:** The customer selects a solution to use or purchase\n4. **Retention:** The company keeps the customer satisfied through support and engagement, encouraging repeat purchases or utilization.\n5. **Advocacy:** Loyal customers become promoters, offering referrals, word-of-mouth recommendations, and positive reviews. \n\n# Follow these guidelines\n- Do not enforce strict content limits\n- Omit any dates and meta-commentary from the report",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.8,
+      "position": [
+        608,
+        1296
+      ],
+      "id": "00000000-0000-0000-0000-000000000003",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# Role & Objective\n- You are a Market Research Analyst who specializes in analyzing customer profiles. \n- Your goal is to produce reports that help others understand the buyer and user personas.\n\n# Task\n- Analyze each buyer and user persona, as delineated by commas in the following fields, such as {{ $json['What are the job titles for your buyer personas?'] }} and {{ $json['What are the job titles for your user personas?'] }}. \n- Ensure that industries and countries of origin apply to each persona. \n\n# Extract and analyze the following details\n- **Job title:** {{ $json['What are the job titles for your buyer personas?'] }} AND {{ $json['What are the job titles for your user personas?'] }}\n- **Industry:** {{ $json['What industries do your personas operate in?'] }}\n- **Location:** {{ $json['What countries do your buyer personas operate in?'] }}\n- **Product category:** {{  $json['What technology are they evaluating?'] }}\n\n# Describe the buyer and user personas\n- **Role:** List the standard job responsibilities\n- **KPIs:** List measurable key performance indicators \n- **Challenges:** List the operational challenges \n- **Tech Stack:** List commonly used software solutions\n\n# Describe the persona's expectations\n- How would they use the technology?\n- What results do they anticipate?\n\n# List popular channels of engagement for the target persona:\n- Publications \n- Online groups or forums (including LinkedIn groups, subreddits, Slack channels, and Discord channels)\n- Professional associations\n- Industry events or conferences \n\n# List at least 5 hypothetical questions that may be asked by the buyer and user personas at each stage of the customer journey \n1. **Awareness:** The potential customer identifies a need or problem and discovers your brand.\n2. **Consideration:** The prospect defines their problem and researches potential solutions or vendors.\n3. **Decision:** The customer selects a solution to use or purchase\n4. **Retention:** The company keeps the customer satisfied through support and engagement, encouraging repeat purchases or utilization.\n5. **Advocacy:** Loyal customers become promoters, offering referrals, word-of-mouth recommendations, and positive reviews. \n\n# Follow these guidelines\n- Do not enforce strict content limits\n- Omit any dates and meta-commentary from the report",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.8,
+      "position": [
+        608,
+        1568
+      ],
+      "id": "00000000-0000-0000-0000-000000000022",
+      "name": "Basic LLM Chain1"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "text",
+        "binaryPropertyName": "=target_persona_profile",
+        "options": {
+          "fileName": "target_persona_profile.md"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        1296
+      ],
+      "id": "00000000-0000-0000-0000-000000000006",
+      "name": "Convert to File2"
+    },
+    {
+      "parameters": {
+        "operation": "toText",
+        "sourceProperty": "text",
+        "binaryPropertyName": "=buyer_and_user_persona_profile",
+        "options": {
+          "fileName": "buyer_and_user_persona_profile.md"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        1568
+      ],
+      "id": "00000000-0000-0000-0000-000000000018",
+      "name": "Convert to File3"
+    },
+    {
+      "parameters": {
+        "sendTo": "your-email@example.com",
+        "subject": "Target Persona Profile",
+        "message": "Please review Target Persona Profile attached, showing job description details and channels of engagement. ",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "target_persona_profile"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1040,
+        1296
+      ],
+      "id": "00000000-0000-0000-0000-000000000013",
+      "name": "Send Target Persona Profile",
+      "webhookId": "YOUR_WEBHOOK_ID_2",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_OAUTH2_CREDENTIAL_ID",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "your-email@example.com",
+        "subject": "Buyer & User Persona Profiles",
+        "message": "Please review Buyer and User Persona Profiles attached, showing job description details and channels of engagement. ",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "buyer_and_user_persona_profile"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1040,
+        1568
+      ],
+      "id": "00000000-0000-0000-0000-000000000017",
+      "name": "Send Buyer & User Persona Profiles",
+      "webhookId": "YOUR_WEBHOOK_ID_2",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_OAUTH2_CREDENTIAL_ID",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json[\"Are you analyzing your audience or generating persona profiles?\"] === \"Analyzing audiences\" }}",
+                    "rightValue": "=",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    },
+                    "id": "00000000-0000-0000-condition-000001"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Analyzing audience"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "00000000-0000-0000-condition-000003",
+                    "leftValue": "={{ $json[\"Are you analyzing your audience or generating persona profiles?\"] === \"Generating persona profiles\" }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Generating persona profiles"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -112,
+        1248
+      ],
+      "id": "00000000-0000-0000-0000-000000000021",
+      "name": "Audience analysis or persona profile?"
+    },
+    {
+      "parameters": {
+        "sendTo": "your-email@example.com",
+        "subject": "Audience Analysis",
+        "message": "Please review Account Profile attached, showing the distribution of industries, country of headquarters, last year's annual revenue, and number of employees.",
+        "options": {
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "account_profile"
+              },
+              {
+                "property": "contact_profile"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1040,
+        992
+      ],
+      "id": "00000000-0000-0000-0000-000000000007",
+      "name": "Send Audience Analysis",
+      "webhookId": "YOUR_WEBHOOK_ID_2",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "YOUR_GMAIL_OAUTH2_CREDENTIAL_ID",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Audience analysis": {
+      "main": [
+        [
+          {
+            "node": "Audience analysis or persona profile?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload customer details": {
+      "main": [
+        [
+          {
+            "node": "Company & contact lists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Company & contact lists": {
+      "main": [
+        [
+          {
+            "node": "Analyze document",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Analyze document1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze document": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze document1": {
+      "main": [
+        [
+          {
+            "node": "Convert to File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Merge Profiles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File1": {
+      "main": [
+        [
+          {
+            "node": "Merge Profiles",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Profiles": {
+      "main": [
+        [
+          {
+            "node": "Send Audience Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model12": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model13": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is the buyer the user?": {
+      "main": [
+        [
+          {
+            "node": "Yes/No",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Yes/No": {
+      "main": [
+        [
+          {
+            "node": "Target persona details",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Buyer & persona details",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Target persona details": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buyer & persona details": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Convert to File2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain1": {
+      "main": [
+        [
+          {
+            "node": "Convert to File3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File2": {
+      "main": [
+        [
+          {
+            "node": "Send Target Persona Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File3": {
+      "main": [
+        [
+          {
+            "node": "Send Buyer & User Persona Profiles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audience analysis or persona profile?": {
+      "main": [
+        [
+          {
+            "node": "Upload customer details",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Is the buyer the user?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "YOUR_VERSION_ID_1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "YOUR_N8N_INSTANCE_ID"
+  },
+  "id": "YOUR_WORKFLOW_ID",
+  "tags": []
+}
