@@ -24,7 +24,7 @@ The workflow segments its analysis into two primary paths based on whether you a
 
 The workflow uses several **AI Agent nodes** powered by the **Google Gemini 3.1 Pro** model with specialized prompts:
 
-* **Account Profile Agent:** Analyzes the  distributions of Companies, Industries (NAICS), Countries of Headquarters (U.N. standards), Annual Revenue, and Employee Count.
+* **Account Profile Agent:** Analyzes the distributions of Companies, Industries (NAICS), Countries of Headquarters (U.N. standards), Annual Revenue, and Employee Count.
 * **Contact Profile Agent:** Analyzes Job Titles, Company Names, Industries, and Countries of Origin from contact lists.
 * **Persona Profile Agents:** Generates deep-dive reports including:
   * **Role & KPIs:** Standard responsibilities and measurable success metrics.
@@ -66,7 +66,7 @@ For **Existing Audience** analysis, your uploaded files should ideally contain:
 
 ## How to Use
 
-1. **Import the JSON:** Download the `ICP & Persona Analysis.json` file and import it into your n8n instance.
+1. **Import the JSON:** Download the `ICP & Persona Analyzer.json` file and import it into your n8n instance.
 2. **Configure Credentials:**
 * Set up the **Google Gemini(PaLM) API** in the Gemini Chat nodes.
 * Connect your **Gmail account** in the Gmail nodes.
